@@ -1,0 +1,10 @@
+GET http://localhost:9999/accounts/
+### list accounts
+
+POST http://localhost:9999/accounts/
+Content-Type: application/json
+
+{
+    "name": "Test 1"
+}
+### insert new 
