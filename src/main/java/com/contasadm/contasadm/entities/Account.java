@@ -7,7 +7,6 @@ import java.time.Instant;
 
 import com.contasadm.contasadm.db.Connection;
 import com.contasadm.contasadm.exceptions.HTTPException;
-import com.contasadm.contasadm.interfaces.IConnection;
 
 public class Account implements Serializable {
     private String id = "";
