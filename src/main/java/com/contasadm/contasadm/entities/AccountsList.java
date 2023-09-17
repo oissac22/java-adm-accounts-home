@@ -5,21 +5,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.contasadm.contasadm.exceptions.BDExceptions;
-import com.contasadm.contasadm.interfaces.IConnection;
+import com.contasadm.contasadm.db.Connection;
+import com.contasadm.contasadm.exceptions.DBExceptions;
 
 public class AccountsList {
 
     int index = 0;
     int limit = 10;
     String filter = "";
-    private IConnection conn = null;
     
     List<AccountListDTO> list = new ArrayList<>();
-
-    public AccountsList(IConnection conn) {
-        this.conn = conn;
-    }
 
     public List<AccountListDTO> getList() {
         return list;
@@ -27,15 +22,17 @@ public class AccountsList {
 
     public void loadList() {
         StringBuffer queryBuffer = new StringBuffer();
-        Object[] props = {};
+        Object[] props = new Object[3];
         queryBuffer.append("SELECT id, name FROM accounts ");
         int indexProps = 0;
         if (filter != "") {
             queryBuffer.append("where name like ? ");
             props[indexProps++] = new String("%" + filter + "%");
         }
-        queryBuffer.append("ORDER BY name LIMIT ? SKIP ? ");
-        ResultSet rs = conn.result(queryBuffer.toString(), props);
+        queryBuffer.append("ORDER BY name LIMIT ? OFFSET ? ");
+        props[indexProps++] = limit;
+        props[indexProps++] = index;
+        ResultSet rs = Connection.connection().result(queryBuffer.toString(), props);
         list.clear();
         try {
             while (rs.next()) {
@@ -43,7 +40,7 @@ public class AccountsList {
                 list.add(ac);
             }
         } catch (SQLException e) {
-            throw new BDExceptions(e.getMessage());
+            throw new DBExceptions(e.getMessage());
         }
     }
     

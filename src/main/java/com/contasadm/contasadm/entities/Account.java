@@ -5,6 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 
+import com.contasadm.contasadm.db.Connection;
+import com.contasadm.contasadm.exceptions.HTTPException;
 import com.contasadm.contasadm.interfaces.IConnection;
 
 public class Account implements Serializable {
@@ -12,7 +14,8 @@ public class Account implements Serializable {
     private String name = "";
     private Instant created = Instant.now();
     private Instant update = Instant.now();
-    private IConnection conn = null;
+
+    public Account() {}
 
     public Account(String id, String name) {
         this.id = id;
@@ -53,15 +56,15 @@ public class Account implements Serializable {
         this.update = update;
     }
 
-    public void load() {
-        Object[] props = {this.getId()};
-        ResultSet rs = conn.result("SELECT id, name, created, update FROM accounts WHERE id=?", props);
+    public void load(String id) {
+        Object[] props = {id};
+        ResultSet rs = Connection.connection().result("SELECT id, name, created, updateDate FROM accounts WHERE id=?", props);
         try {
             if (rs.next()) {
                 setId(rs.getString("id"));
                 setName(rs.getString("name"));
                 setCreated(Instant.parse(rs.getString("created")));
-                setUpdate(Instant.parse(rs.getString("update")));
+                setUpdate(Instant.parse(rs.getString("updateDate")));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -70,18 +73,26 @@ public class Account implements Serializable {
     }
 
     public void insert() {
+        if (getId() == null || getId() == "")
+            setId(RandomKey.generateRandonKeyOnHex(10));
+        if (getName() == null || getName() == "")
+            throw new HTTPException("Nome não informado", 401);
         Object[] props = {getId(), getName(), getCreated(), getUpdate()};
-        conn.update("INSERT INTO accounts (id, name, created, update) VALUES (?, ?, ?, ?)", props);
+        Connection.connection().exec("INSERT INTO accounts (id, name, created, updateDate) VALUES (?, ?, ?, ?)", props);
     }
 
     public void update() {
+        if (getId() == null || getId() == "")
+            throw new HTTPException("Id não informado", 401);
+        if (getName() == null || getName() == "")
+            throw new HTTPException("Nome não informado", 401);
         Object[] props = {getName(), getUpdate(), getId()};
-        conn.update("UPDATE accounts SET name=?, update=? WHERE id=?", props);
+        Connection.connection().exec("UPDATE accounts SET name=?, updateDate=? WHERE id=?", props);
     }
 
     public void delete() {
         Object[] props = {getId()};
-        conn.update("DELETE FROM accounts WHERE id=?", props);
+        Connection.connection().exec("DELETE FROM accounts WHERE id=?", props);
     }
 
 }
